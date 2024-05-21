@@ -11,6 +11,8 @@ struct ContentView: View {
     @State var percentage: Float = 50
     @State var controlWidth: CGFloat = 300
     @State var controlHeight: CGFloat = 75
+    @State var leftRectangleWidth: CGFloat = 100
+    @State var rightRectangleWidth: CGFloat = 100
 
     var body: some View {
         ZStack {
@@ -19,10 +21,18 @@ struct ContentView: View {
                 .scaledToFill()
                 .edgesIgnoringSafeArea(.all)
                 .blur(radius: 3)
-            CustomControl(percentage: $percentage, controlWidth: $controlWidth, controlHeight: $controlHeight)
-                            .accentColor(.white)
-                            .rotationEffect(.degrees(-90))
-                            .frame(width: controlWidth, height: controlHeight)
+            HStack {
+                RoundedRectangle(cornerRadius: 10)
+                    .foregroundStyle(.clear)
+                    .frame(width: leftRectangleWidth, height: 100)
+                CustomControl(percentage: $percentage, controlWidth: $controlWidth, controlHeight: $controlHeight, leftRectangleWidth: $leftRectangleWidth, rightRectangleWidth: $rightRectangleWidth)
+                    .accentColor(.white)
+                    .frame(width: .infinity, height: controlHeight)
+                RoundedRectangle(cornerRadius: 10)
+                    .foregroundStyle(.clear)
+                    .frame(width: rightRectangleWidth, height: 100)
+            }
+            .rotationEffect(.degrees(-90))
         }
     }
 }
@@ -31,6 +41,8 @@ struct CustomControl: View {
     @Binding var percentage: Float
     @Binding var controlWidth: CGFloat
     @Binding var controlHeight: CGFloat
+    @Binding var leftRectangleWidth: CGFloat
+    @Binding var rightRectangleWidth: CGFloat
     
     var body: some View {
         GeometryReader { geometry in
@@ -52,17 +64,23 @@ struct CustomControl: View {
                         if value.location.x > self.controlWidth {
                             let extraWidth = value.location.x - self.controlWidth
                             self.controlHeight = 75 - extraWidth / 20 // Уменьшение высоты
+                            self.rightRectangleWidth = max(0, 100 - extraWidth / 7) // Уменьшение правого прямоугольника
                         } else if value.location.x < 0 {
                             let extraWidth = abs(value.location.x)
                             self.controlHeight = 75 - extraWidth / 20 // Уменьшение высоты
+                            self.leftRectangleWidth = max(0, 100 - extraWidth / 7) // Уменьшение левого прямоугольника
                         } else {
                             self.controlHeight = 75
+                            self.leftRectangleWidth = 100
+                            self.rightRectangleWidth = 100
                         }
                     }
                     .onEnded { _ in
-                        // Анимационно сбрасываем высоту после окончания перетаскивания
+                        // Анимационно сбрасываем высоту и ширину прямоугольников после окончания перетаскивания
                         withAnimation {
                             self.controlHeight = 75
+                            self.leftRectangleWidth = 100
+                            self.rightRectangleWidth = 100
                         }
                     }
             )
